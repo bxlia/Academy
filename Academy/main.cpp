@@ -5,7 +5,11 @@ using std::cin;
 using std::cout;
 using std::endl;
 
+#define tab "\t"
+#define delimiter "\n-----------------------------------------\n"
 
+#define HUMAN_TAKE_PARAMETERS const std::string& last_name, const std::string& first_name, const std::string& birth_date
+#define HUMAN_GIVE_PARAMETERS last_name, first_name, birth_date
 class Human
 {
 	const std::string LAST_NAME;
@@ -60,7 +64,7 @@ public:
 		tm_birth_date.tm_mday = date_parts[2];
 		return tm_birth_date;
 	}
-	Human(const std::string& last_name, const std::string& first_name, const std::string& birth_date) :
+	Human(HUMAN_TAKE_PARAMETERS) :
 		LAST_NAME(last_name), FIRST_NAME(first_name), BIRTH_DATE(parse_date(birth_date))
 	{
 		cout << "HConsructor:\t" << this << endl;
@@ -69,7 +73,7 @@ public:
 	{
 		cout << "HDesructor:\t" << this << endl;
 	}
-	void info()const
+	virtual void info()const
 	{
 		cout << LAST_NAME << " " << FIRST_NAME << " " << get_age() << endl;
 	}
@@ -87,9 +91,12 @@ public:
 	{
 		this->speciality = speciality;
 	}
-	AcademyMember(const std::string& last_name, const std::string& first_name, const std::string& birth_date,
-		const std::string& speciality) :
-		Human(last_name, first_name, birth_date)
+
+#define ACADEMY_MEMBER_TAKE_PARAMETERS const std::string& speciality
+#define ACADEMY_MEMBER_GIVE_PARAMETERS speciality
+	AcademyMember(HUMAN_TAKE_PARAMETERS,
+		ACADEMY_MEMBER_TAKE_PARAMETERS) :
+		Human(HUMAN_GIVE_PARAMETERS)
 	{
 		set_speciality(speciality);
 		cout << "AMConstructor:\t" << this << endl;
@@ -98,13 +105,15 @@ public:
 	{
 		cout << "AMDestructor:\t" << this << endl;
 	}
-	void info()const
+	void info()const override
 	{
 		Human::info(); //Вызываем метод info() для класса 'Human'
 		cout << speciality << endl;
 	}
 };
 
+#define STUDENT_TAKE_PARAMETERS  const std::string& group, double rating, double attendance
+#define STUDENT_GIVE_PARAMETERS group, rating, attendance
 class Student : public AcademyMember
 {
 	std::string group;
@@ -144,9 +153,8 @@ public:
 			this->attendance = attendance;
 	}
 
-	Student(const std::string& last_name, const std::string& first_name, const std::string& birth_date,
-		const std::string& speciality, const std::string& group, double rating, double attendance) :
-		AcademyMember(last_name, first_name, birth_date, speciality)
+	Student(HUMAN_TAKE_PARAMETERS, ACADEMY_MEMBER_TAKE_PARAMETERS, const std::string& group, double rating, double attendance) :
+		AcademyMember(HUMAN_GIVE_PARAMETERS, ACADEMY_MEMBER_GIVE_PARAMETERS)
 	{
 		set_group(group);
 		set_rating(rating);
@@ -159,13 +167,15 @@ public:
 		cout << "SDestructor:\t" << this << endl;
 	}
 
-	void info() const
+	void info() const override
 	{
 		AcademyMember::info();
 		cout << "Group: " << group << ", Rating: " << rating << "%, Attendance: " << attendance << "%" << endl;
 	}
 };
 
+#define TEACHER_TAKE_PARAMETERS int experience
+#define TEACHER_GIVE_PARAMETERS experience
 class Teacher : public AcademyMember
 {
 	int experience;
@@ -182,9 +192,9 @@ public:
 			this->experience = experience;
 	}
 
-	Teacher(const std::string& last_name, const std::string& first_name, const std::string& birth_date,
-		const std::string& speciality, int experience) :
-		AcademyMember(last_name, first_name, birth_date, speciality)
+	Teacher(HUMAN_TAKE_PARAMETERS, ACADEMY_MEMBER_TAKE_PARAMETERS,
+		TEACHER_TAKE_PARAMETERS) :
+		AcademyMember(HUMAN_GIVE_PARAMETERS, ACADEMY_MEMBER_GIVE_PARAMETERS)
 	{
 		set_experience(experience);
 		cout << "TConstructor:\t" << this << endl;
@@ -195,7 +205,7 @@ public:
 		cout << "TDestructor:\t" << this << endl;
 	}
 
-	void info() const
+	void info() const override
 	{
 		AcademyMember::info();
 		cout << "Experience: " << experience << " years" << endl;
@@ -205,15 +215,32 @@ public:
 void main()
 {
 	setlocale(LC_ALL, "");
+#ifdef  INHERITANCE
 	cout << "|| Academy ||" << endl;
 	Human human("Тупенко ", "Василий", "2009.09.2");
 	human.info();
 	AcademyMember am("Тупенко", "Василий", "2000.10.24", "Флуктуации пространства в вакууме");
 	am.info();
 
-	Student student("Иванов", "Петр", "2003.05.15", "Компьютерные науки", "P421", 85.5, 92.3);
+	Student student("Чухарев", "Матвей", "2009.09.02", "Разработка программного обеспечения", "P_421", 100, 100);
 	student.info();
 
-	Teacher teacher("Сидорова", "Мария", "1980.12.10", "Физика", 15);
+	Teacher teacher("Энштейн", "Альберт", "1979.03.14", "Астрономия", 20);
 	teacher.info();
+#endif //  INHERITANCE
+	Human* group[] =
+	{
+		new Student("Чухарев", "Матвей", "2009.09.02", "Разработка программного обеспечения", "P_421", 100, 100),
+		new Teacher("Энштейн", "Альберт", "1979.03.14", "Астрономия", 20),
+		new Student("Гусев", "Савелий", "2010.08.29", "Разработка программного обеспечения", "P_421", 98, 98),
+		new Teacher("Олег", "Анатольевич", "1985.01.16", "Разработка программного обеспечения", 16),
+		new Student("Львов", "Константин", "2009.09.21", "Разработка программного обеспечения", "P_421", 100, 98),
+	};
+	cout << sizeof(group) << endl;
+	cout << delimiter << endl;
+	for (int i = 0; i < sizeof(group)/sizeof(group[0]); i++)
+	{
+		group[i]->info();
+		cout << delimiter << endl;
+	}
 }
